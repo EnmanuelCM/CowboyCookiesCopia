@@ -69,6 +69,7 @@ public class FrmMenuPrincipal extends javax.swing.JFrame {
         jMenuItem_ReporteCat = new javax.swing.JMenuItem();
         jMenuItem_Reporteprod = new javax.swing.JMenuItem();
         jMenuItem_ReportesVentas = new javax.swing.JMenuItem();
+        jMenuItem1 = new javax.swing.JMenuItem();
         MenuLogout = new javax.swing.JMenu();
         jMenuItem_Cerrarsesion = new javax.swing.JMenuItem();
 
@@ -225,6 +226,17 @@ public class FrmMenuPrincipal extends javax.swing.JFrame {
         });
         MenuReportes.add(jMenuItem_ReportesVentas);
 
+        jMenuItem1.setFont(new java.awt.Font("Montserrat Medium", 0, 14)); // NOI18N
+        jMenuItem1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imgmenu/reporte1.png"))); // NOI18N
+        jMenuItem1.setText("Reporte P. Vendidos");
+        jMenuItem1.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem1ActionPerformed(evt);
+            }
+        });
+        MenuReportes.add(jMenuItem1);
+
         jMenuBar1.add(MenuReportes);
 
         MenuLogout.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imgmenu/cerrar-sesion.png"))); // NOI18N
@@ -325,6 +337,11 @@ public class FrmMenuPrincipal extends javax.swing.JFrame {
         FrmGestionarUsuarios.setVisible(true);
     }//GEN-LAST:event_MenuItem_GestionarUsuariosActionPerformed
 
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+        Reportes reporte = new Reportes();
+        reporte.ReporteProductosVendidos();
+    }//GEN-LAST:event_jMenuItem1ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -370,6 +387,7 @@ public class FrmMenuPrincipal extends javax.swing.JFrame {
     private javax.swing.JMenu MenuReportes;
     private javax.swing.JMenu MenuUsuarios;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem_ActStock;
     private javax.swing.JMenuItem jMenuItem_Cerrarsesion;
     private javax.swing.JMenuItem jMenuItem_GestionarCat;

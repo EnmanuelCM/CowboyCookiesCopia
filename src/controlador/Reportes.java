@@ -141,8 +141,8 @@ public class Reportes {
     public void ReportesCategorias() {
         Document documento = new Document();
         try {
-            
-             //cargar la fecha actual
+
+            //cargar la fecha actual
             Date date = new Date();
             fechaActual = new SimpleDateFormat("yyyy/MM/dd").format(date);
             //cambiar el formato de la fecha de / a _
@@ -152,7 +152,7 @@ public class Reportes {
                     fechaNueva = fechaActual.replace("/", "_");
                 }
             }
-            
+
             String ruta = System.getProperty("user.home");
             PdfWriter.getInstance(documento, new FileOutputStream(ruta + "/OneDrive/Desktop/Reporte_Categorias_" + fechaNueva + ".pdf"));
 
@@ -250,8 +250,8 @@ public class Reportes {
     public void ReportesVentas() {
         Document documento = new Document();
         try {
-            
-             //cargar la fecha actual
+
+            //cargar la fecha actual
             Date date = new Date();
             fechaActual = new SimpleDateFormat("yyyy/MM/dd").format(date);
             //cambiar el formato de la fecha de / a _
@@ -261,7 +261,7 @@ public class Reportes {
                     fechaNueva = fechaActual.replace("/", "_");
                 }
             }
-            
+
             String ruta = System.getProperty("user.home");
             PdfWriter.getInstance(documento, new FileOutputStream(ruta + "/OneDrive/Desktop/Reporte_Ventas_" + fechaNueva + ".pdf"));
 
@@ -348,6 +348,92 @@ public class Reportes {
 
         } catch (DocumentException | IOException e) {
             System.out.println("Error al generar reporte: " + e);
+        }
+    }
+
+    /* ********************************************************************
+    * metodo para crear reportes de los productos mas vendidos y menos vendidos
+    *********************************************************************** */
+    public void ReporteProductosVendidos() {
+        Document documento = new Document();
+        try {
+            Date date = new Date();
+            String fecha = new SimpleDateFormat("yyyy_MM_dd").format(date);
+            String ruta = System.getProperty("user.home");
+            PdfWriter.getInstance(documento, new FileOutputStream(ruta + "/OneDrive/Desktop/Reporte_Productos_Vendidos_" + fecha + ".pdf"));
+
+            Image header = Image.getInstance("src/files/header.jpg");
+            header.scaleToFit(650, 1000);
+            header.setAlignment(Chunk.ALIGN_CENTER);
+
+            BaseFont montserrat = BaseFont.createFont("src/fonts/Montserrat-Regular.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+            BaseFont montserratBold = BaseFont.createFont("src/fonts/Montserrat-Bold.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+            Font titulo = new Font(montserratBold, 18, Font.NORMAL, new BaseColor(0x5f, 0x2f, 0x23));
+            Font subtitulo = new Font(montserrat, 12, Font.NORMAL, new BaseColor(0x5f, 0x2f, 0x23));
+            Font encabezadoTabla = new Font(montserratBold, 11, Font.NORMAL, BaseColor.BLACK);
+            Font cuerpoTabla = new Font(montserrat, 10, Font.NORMAL, BaseColor.BLACK);
+
+            documento.open();
+            documento.add(header);
+
+            Paragraph encabezado = new Paragraph();
+            encabezado.setAlignment(Element.ALIGN_CENTER);
+            encabezado.add(new Phrase("\n\n"));
+            encabezado.add(new Phrase("Reporte de Productos Más y Menos Vendidos\n\n", titulo));
+            encabezado.add(new Phrase("Generado por Cowboy Cookies\n\n", subtitulo));
+            documento.add(encabezado);
+
+            Connection cn = Conexion.getConnection();
+
+            String[] titulos = {"Productos Más Vendidos", "Productos Menos Vendidos"};
+            String[] consultas = {
+                "SELECT p.id_producto, p.nombre, SUM(dv.cantidad) AS total_vendido "
+                + "FROM detalleventa dv JOIN productos p ON dv.id_producto = p.id_producto "
+                + "GROUP BY p.id_producto, p.nombre ORDER BY total_vendido DESC LIMIT 5;",
+                "SELECT p.id_producto, p.nombre, COALESCE(SUM(dv.cantidad), 0) AS total_vendido "
+                + "FROM productos p LEFT JOIN detalleventa dv ON p.id_producto = dv.id_producto "
+                + "GROUP BY p.id_producto, p.nombre ORDER BY total_vendido ASC LIMIT 5;"
+            };
+
+            for (int i = 0; i < 2; i++) {
+                Paragraph seccion = new Paragraph(titulos[i] + "\n\n", subtitulo);
+                documento.add(seccion);
+
+                PdfPTable tabla = new PdfPTable(3);
+                tabla.setWidthPercentage(100f);
+                tabla.setSpacingBefore(5f);
+                String[] headers = {"ID", "Nombre", "Cantidad Vendida"};
+                for (String h : headers) {
+                    PdfPCell cell = new PdfPCell(new Phrase(h, encabezadoTabla));
+                    cell.setBackgroundColor(new BaseColor(0xa2, 0xd2, 0xff));
+                    cell.setPadding(8f);
+                    tabla.addCell(cell);
+                }
+
+                PreparedStatement pst = cn.prepareStatement(consultas[i]);
+                ResultSet rs = pst.executeQuery();
+                while (rs.next()) {
+                    PdfPCell celdaId = new PdfPCell(new Phrase(rs.getString("id_producto"), cuerpoTabla));
+                    celdaId.setPadding(8f); // aumenta el espacio interno
+                    tabla.addCell(celdaId);
+
+                    PdfPCell celdaNombre = new PdfPCell(new Phrase(rs.getString("nombre"), cuerpoTabla));
+                    celdaNombre.setPadding(8f);
+                    tabla.addCell(celdaNombre);
+
+                    PdfPCell celdaTotal = new PdfPCell(new Phrase(rs.getString("total_vendido"), cuerpoTabla));
+                    celdaTotal.setPadding(8f);
+                    tabla.addCell(celdaTotal);
+                }
+                documento.add(tabla);
+                documento.add(new Paragraph("\n"));
+            }
+
+            documento.close();
+            JOptionPane.showMessageDialog(null, "Reporte creado con éxito");
+
+        } catch (Exception e) {
+            System.out.println("Error al generar el reporte: " + e);
         }
     }
 
