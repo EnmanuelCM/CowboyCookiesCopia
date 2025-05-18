@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.awt.Dimension;
+import java.awt.event.KeyEvent;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
@@ -123,7 +124,9 @@ public class FrmNuevaVenta extends javax.swing.JInternalFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jLabel10 = new javax.swing.JLabel();
         txtCantidad = new javax.swing.JTextField();
+        txt_idproducto = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
         lblEmpleado = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
@@ -153,8 +156,21 @@ public class FrmNuevaVenta extends javax.swing.JInternalFrame {
         setPreferredSize(new java.awt.Dimension(1000, 602));
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
+        jLabel10.setFont(new java.awt.Font("Montserrat SemiBold", 0, 14)); // NOI18N
+        jLabel10.setForeground(new java.awt.Color(95, 47, 35));
+        jLabel10.setText("Buscar por código:");
+        getContentPane().add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(790, 70, -1, -1));
+
         txtCantidad.setFont(new java.awt.Font("Montserrat", 0, 12)); // NOI18N
         getContentPane().add(txtCantidad, new org.netbeans.lib.awtextra.AbsoluteConstraints(510, 90, 70, -1));
+
+        txt_idproducto.setFont(new java.awt.Font("Montserrat", 0, 12)); // NOI18N
+        txt_idproducto.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txt_idproductoKeyPressed(evt);
+            }
+        });
+        getContentPane().add(txt_idproducto, new org.netbeans.lib.awtextra.AbsoluteConstraints(790, 90, 140, -1));
 
         jLabel3.setFont(new java.awt.Font("Montserrat SemiBold", 0, 14)); // NOI18N
         jLabel3.setForeground(new java.awt.Color(95, 47, 35));
@@ -483,6 +499,84 @@ public class FrmNuevaVenta extends javax.swing.JInternalFrame {
 
     }//GEN-LAST:event_btnRegistrarVentaActionPerformed
 
+    private void txt_idproductoKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txt_idproductoKeyPressed
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            String idTexto = txt_idproducto.getText().trim();
+            if (!idTexto.isEmpty()) {
+                try {
+                    int codigoBuscar = Integer.parseInt(idTexto);
+                    String sql = "SELECT * FROM productos WHERE codigo = " + codigoBuscar;
+                    Connection cn = Conexion.getConnection();
+                    Statement st = cn.createStatement();
+                    ResultSet rs = st.executeQuery(sql);
+
+                    if (rs.next()) {
+                        // Extraer datos del producto
+                        id_producto = rs.getInt("id_producto");
+                        nombre = rs.getString("nombre");
+                        cantidadProductoBBDD = rs.getInt("stock");
+                        precioUnitario = rs.getDouble("precio");
+                        porcentajeITBIS = rs.getInt("porcentajeitbis");
+
+                        // Por defecto, cantidad 1 y descuento 0
+                        int cantidad = 1;
+                        double descuento = 0;
+
+                        // Validar stock disponible
+                        if (cantidad > cantidadProductoBBDD) {
+                            JOptionPane.showMessageDialog(this, "Stock insuficiente.");
+                            return;
+                        }
+
+                        // Calcular subtotal, ITBIS y total
+                        double subtotal = cantidad * precioUnitario;
+                        double ITBIS = (subtotal * porcentajeITBIS) / 100;
+                        double totalPagar = subtotal + ITBIS - descuento;
+
+                        // Redondear
+                        subtotal = Math.round(subtotal * 100.0) / 100.0;
+                        ITBIS = Math.round(ITBIS * 100.0) / 100.0;
+                        totalPagar = Math.round(totalPagar * 100.0) / 100.0;
+
+                        // Crear objeto DetalleVenta
+                        DetalleVenta producto = new DetalleVenta(
+                                auxIdDetalle++, // Asignar ID incremental
+                                1, // ID cabecera fija
+                                id_producto,
+                                nombre,
+                                cantidad,
+                                precioUnitario,
+                                subtotal,
+                                ITBIS,
+                                descuento,
+                                totalPagar
+                        );
+
+                        // Agregar a la lista y actualizar tabla
+                        listaProductos.add(producto);
+                        ListaTablaProductos();
+                        CalcularTotalPagar();
+                        txtEfectivo.setEnabled(true);
+                        btnCalcularCambio.setEnabled(true);
+
+                        txt_idproducto.setText(""); // Limpiar campo
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Producto no encontrado.");
+                    }
+
+                    rs.close();
+                    st.close();
+                    cn.close();
+
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this, "Ingrese un código numérico válido.");
+                } catch (SQLException ex) {
+                    JOptionPane.showMessageDialog(this, "Error al buscar el producto: " + ex.getMessage());
+                }
+            }
+        }
+    }//GEN-LAST:event_txt_idproductoKeyPressed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAgregarProd;
@@ -490,6 +584,7 @@ public class FrmNuevaVenta extends javax.swing.JInternalFrame {
     private javax.swing.JButton btnRegistrarVenta;
     private javax.swing.JComboBox<String> cbxProductos;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -509,6 +604,7 @@ public class FrmNuevaVenta extends javax.swing.JInternalFrame {
     private javax.swing.JTextField txtITBIS;
     private javax.swing.JTextField txtSubtotal;
     public static javax.swing.JTextField txtTotal;
+    private javax.swing.JTextField txt_idproducto;
     // End of variables declaration//GEN-END:variables
 
 //combobox Productos
@@ -658,5 +754,4 @@ public class FrmNuevaVenta extends javax.swing.JInternalFrame {
         java.text.SimpleDateFormat formato = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return formato.format(fecha);
     }
-
 }
