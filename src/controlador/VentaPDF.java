@@ -71,7 +71,7 @@ public class VentaPDF {
             }
 
             int numeroFactura = obtenerNumeroFactura();
-            nombreArchivoPDFVenta = "Venta_" + nombreEmpleado + "_" + fechaNueva + "_"+ String.format("%03d", numeroFactura) +".pdf";
+            nombreArchivoPDFVenta = "Venta_" + nombreEmpleado + "_" + fechaNueva + "_" + String.format("%03d", numeroFactura) + ".pdf";
 
             FileOutputStream archivo;
             File file = new File("src/pdf/" + nombreArchivoPDFVenta);
@@ -85,9 +85,9 @@ public class VentaPDF {
             Font fuentePersonalizada = new Font(montserrat, 11, Font.NORMAL, new BaseColor(0x5f, 0x2f, 0x23)); // Color: #5f2f23
 
             BaseFont montserratBold = BaseFont.createFont("src/fonts/Montserrat-Bold.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
-            Font Negrita = new Font(montserratBold, 12, Font.NORMAL, new BaseColor(0x5f, 0x2f, 0x23)); // color #5f2f23
+            Font Negrita = new Font(montserratBold, 11, Font.NORMAL, new BaseColor(0x5f, 0x2f, 0x23)); // color #5f2f23
 
-            Font montserrat12Negro = new Font(montserrat, 12, Font.NORMAL, BaseColor.BLACK);
+            Font montserrat12Negro = new Font(montserrat, 11, Font.NORMAL, BaseColor.BLACK);
 
             // Crear la imagen del logo y ajustarla
             Image img = Image.getInstance("src/files/PDFventaslogo.png");
@@ -161,18 +161,19 @@ public class VentaPDF {
             doc.add(espacio);
 
             //AGREGAR LOS PRODUCTOS
-            PdfPTable tablaProducto = new PdfPTable(5);
+            PdfPTable tablaProducto = new PdfPTable(6);
             tablaProducto.setWidthPercentage(100);
             tablaProducto.getDefaultCell().setBorder(0);
             //tamaño de celdas
-            float[] ColumnaProducto = new float[]{15f, 50f, 15f, 15f, 20f};
+            float[] ColumnaProducto = new float[]{15f, 50f, 15f, 15f, 20f, 20f};
             tablaProducto.setWidths(ColumnaProducto);
             tablaProducto.setHorizontalAlignment(Element.ALIGN_LEFT);
             PdfPCell producto1 = new PdfPCell(new Phrase("Cantidad: ", Negrita));
             PdfPCell producto2 = new PdfPCell(new Phrase("Descripción: ", Negrita));
             PdfPCell producto3 = new PdfPCell(new Phrase("Precio Unitario: ", Negrita));
             PdfPCell producto4 = new PdfPCell(new Phrase("ITBIS: ", Negrita));
-            PdfPCell producto5 = new PdfPCell(new Phrase("Precio Total: ", Negrita));
+            PdfPCell producto5 = new PdfPCell(new Phrase("Descuento: ", Negrita));
+            PdfPCell producto6 = new PdfPCell(new Phrase("Precio Total: ", Negrita));
 
             //quitar bordes
             producto1.setBorder(0);
@@ -180,6 +181,7 @@ public class VentaPDF {
             producto3.setBorder(0);
             producto4.setBorder(0);
             producto5.setBorder(0);
+            producto6.setBorder(0);
             //agregar color al encabezado del producto
             BaseColor colorCelda = new BaseColor(162, 210, 255); // Color #a2d2ff
             producto1.setBackgroundColor(colorCelda);
@@ -187,19 +189,22 @@ public class VentaPDF {
             producto3.setBackgroundColor(colorCelda);
             producto4.setBackgroundColor(colorCelda);
             producto5.setBackgroundColor(colorCelda);
+            producto6.setBackgroundColor(colorCelda);
             //agg celda a la tabla
             tablaProducto.addCell(producto1);
             tablaProducto.addCell(producto2);
             tablaProducto.addCell(producto3);
             tablaProducto.addCell(producto4);
             tablaProducto.addCell(producto5);
+            tablaProducto.addCell(producto6);
 
             for (int i = 0; i < FrmNuevaVenta.jTable_Productos.getRowCount(); i++) {
                 String producto = FrmNuevaVenta.jTable_Productos.getValueAt(i, 1).toString();
                 String cantidad = FrmNuevaVenta.jTable_Productos.getValueAt(i, 2).toString();
                 String precio = FrmNuevaVenta.jTable_Productos.getValueAt(i, 3).toString();
                 String ITBIS = FrmNuevaVenta.jTable_Productos.getValueAt(i, 5).toString();
-                String total = FrmNuevaVenta.jTable_Productos.getValueAt(i, 6).toString();
+                String descuento = FrmNuevaVenta.jTable_Productos.getValueAt(i, 6).toString();
+                String total = FrmNuevaVenta.jTable_Productos.getValueAt(i, 7).toString();
 
                 PdfPCell celdaCantidad = new PdfPCell(new Phrase(cantidad, montserrat12Negro));
                 celdaCantidad.setPaddingTop(5f);
@@ -212,8 +217,12 @@ public class VentaPDF {
                 PdfPCell celdaPrecio = new PdfPCell(new Phrase(precio, montserrat12Negro));
                 celdaPrecio.setPaddingTop(5f);
                 celdaPrecio.setPaddingBottom(5f);
-                
+
                 PdfPCell celdaITBIS = new PdfPCell(new Phrase(ITBIS, montserrat12Negro));
+                celdaPrecio.setPaddingTop(5f);
+                celdaPrecio.setPaddingBottom(5f);
+
+                PdfPCell celdaDescuento = new PdfPCell(new Phrase(descuento, montserrat12Negro));
                 celdaPrecio.setPaddingTop(5f);
                 celdaPrecio.setPaddingBottom(5f);
 
@@ -226,12 +235,14 @@ public class VentaPDF {
                 celdaProducto.setBorder(0);
                 celdaPrecio.setBorder(0);
                 celdaITBIS.setBorder(0);
+                celdaDescuento.setBorder(0);
                 celdaTotal.setBorder(0);
 
                 tablaProducto.addCell(celdaCantidad);
                 tablaProducto.addCell(celdaProducto);
                 tablaProducto.addCell(celdaPrecio);
                 tablaProducto.addCell(celdaITBIS);
+                tablaProducto.addCell(celdaDescuento);
                 tablaProducto.addCell(celdaTotal);
 
             }

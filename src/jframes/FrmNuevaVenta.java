@@ -37,6 +37,7 @@ public class FrmNuevaVenta extends javax.swing.JInternalFrame {
     private int cantidad = 0;//Cantidad de productos a comprar
     private double subtotal = 0.0;//Cantidad por precio
     private double ITBIS = 0.0;
+    private double descuento = 0.0;
     private double totalPagar = 0.0;
 
     //Variables para calculos globales
@@ -52,7 +53,7 @@ public class FrmNuevaVenta extends javax.swing.JInternalFrame {
         this.setSize(new Dimension(1000, 600));
         this.setTitle("Facturacion");
 
-        lblEmpleado.setText( UsuarioActual.getNombreUsuario());
+        lblEmpleado.setText(UsuarioActual.getNombreUsuario());
 
         this.CargarComboProductos();
         this.InicializarTablaProducto();
@@ -67,31 +68,32 @@ public class FrmNuevaVenta extends javax.swing.JInternalFrame {
 
     private void InicializarTablaProducto() {
         modeloDatosProductos = new DefaultTableModel();
-        //agregar columnas
+        // agregar columnas
         modeloDatosProductos.addColumn("N");
         modeloDatosProductos.addColumn("Nombre");
         modeloDatosProductos.addColumn("Cantidad");
         modeloDatosProductos.addColumn("P. Unitario");
         modeloDatosProductos.addColumn("Subtotal");
         modeloDatosProductos.addColumn("ITBIS");
+        modeloDatosProductos.addColumn("Descuento"); // Nueva columna
         modeloDatosProductos.addColumn("Total Pagar");
         modeloDatosProductos.addColumn("Accion");
 
-        //Agregar los datos del modelo a la tabla
+        // Agregar los datos del modelo a la tabla
         this.jTable_Productos.setModel(modeloDatosProductos);
         jTable_Productos.setRowHeight(20); // Ajuste del alto de fila
 
         // Ajustar anchos de columna
         TableColumnModel columnModel = jTable_Productos.getColumnModel();
         columnModel.getColumn(0).setPreferredWidth(30);  // "N"
-        columnModel.getColumn(1).setPreferredWidth(200); // "Nombre" más ancha
+        columnModel.getColumn(1).setPreferredWidth(200); // "Nombre"
         columnModel.getColumn(2).setPreferredWidth(70);  // "Cantidad"
         columnModel.getColumn(3).setPreferredWidth(90);  // "P. Unitario"
         columnModel.getColumn(4).setPreferredWidth(90);  // "Subtotal"
         columnModel.getColumn(5).setPreferredWidth(70);  // "ITBIS"
-        columnModel.getColumn(6).setPreferredWidth(100); // "Total Pagar"
-        columnModel.getColumn(7).setPreferredWidth(60);  // "Accion"
-
+        columnModel.getColumn(6).setPreferredWidth(80);  // "Descuento"
+        columnModel.getColumn(7).setPreferredWidth(100); // "Total Pagar"
+        columnModel.getColumn(8).setPreferredWidth(60);  // "Accion"
     }
 
     //Metodo para presentar la informacion de la tabla DetalleVenta
@@ -104,10 +106,11 @@ public class FrmNuevaVenta extends javax.swing.JInternalFrame {
             this.modeloDatosProductos.setValueAt(listaProductos.get(i).getPrecio_unitario(), i, 3);
             this.modeloDatosProductos.setValueAt(listaProductos.get(i).getSubtotal(), i, 4);
             this.modeloDatosProductos.setValueAt(listaProductos.get(i).getItbis(), i, 5);
-            this.modeloDatosProductos.setValueAt(listaProductos.get(i).getTotal(), i, 6);
-            this.modeloDatosProductos.setValueAt("Eliminar", i, 7);
+            this.modeloDatosProductos.setValueAt(listaProductos.get(i).getDescuento(), i, 6); // Nuevo dato
+            this.modeloDatosProductos.setValueAt(listaProductos.get(i).getTotal(), i, 7);
+            this.modeloDatosProductos.setValueAt("Eliminar", i, 8);
         }
-        //Agregar al JTable
+        // Actualizar JTable
         jTable_Productos.setModel(modeloDatosProductos);
     }
 
@@ -333,17 +336,20 @@ public class FrmNuevaVenta extends javax.swing.JInternalFrame {
                             ITBIS = (double) Math.round(ITBIS * 100) / 100;
                             totalPagar = (double) Math.round(totalPagar * 100) / 100;
 
-                            //Se crea un nuevo producto
-                            producto = new DetalleVenta(auxIdDetalle,
-                                    1,//idCabecera
+                            // Se crea un nuevo producto
+                            producto = new DetalleVenta(
+                                    auxIdDetalle,
+                                    1, // idCabecera
                                     id_producto,
                                     nombre,
                                     Integer.parseInt(txtCantidad.getText()),
                                     precioUnitario,
                                     subtotal,
                                     ITBIS,
+                                    descuento, // asegúrate de tener esta variable calculada antes
                                     totalPagar
                             );
+
                             //Agregar a la lista
                             listaProductos.add(producto);
                             auxIdDetalle++;
@@ -419,60 +425,61 @@ public class FrmNuevaVenta extends javax.swing.JInternalFrame {
 
     private void btnRegistrarVentaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrarVentaActionPerformed
         CabeceraVenta cabeceraVenta = new CabeceraVenta();
-DetalleVenta detalleVenta = new DetalleVenta();
-ctrlVentas controlVenta = new ctrlVentas();
+        DetalleVenta detalleVenta = new DetalleVenta();
+        ctrlVentas controlVenta = new ctrlVentas();
 
-if (listaProductos.size() > 0) {
+        if (listaProductos.size() > 0) {
 
-    // registrar cabecera
-    cabeceraVenta.setId_usuario(UsuarioActual.getIdUsuario());
-    cabeceraVenta.setFecha_hora(getFechaHoraActual());
-    cabeceraVenta.setTotal(Double.parseDouble(txtTotal.getText()));
+            // registrar cabecera
+            cabeceraVenta.setId_usuario(UsuarioActual.getIdUsuario());
+            cabeceraVenta.setFecha_hora(getFechaHoraActual());
+            cabeceraVenta.setTotal(Double.parseDouble(txtTotal.getText()));
 
-    if (controlVenta.guardar(cabeceraVenta)) {
-        JOptionPane.showMessageDialog(null, "¡Venta Registrada!");
+            if (controlVenta.guardar(cabeceraVenta)) {
+                JOptionPane.showMessageDialog(null, "¡Venta Registrada!");
 
-        // Generar la factura de venta
-        VentaPDF pdf = new VentaPDF();
-        pdf.DatosEmpleado(UsuarioActual.getIdUsuario());
-        pdf.generarFacturaPDF();
+                // Generar la factura de venta
+                VentaPDF pdf = new VentaPDF();
+                pdf.DatosEmpleado(UsuarioActual.getIdUsuario());
+                pdf.generarFacturaPDF();
 
-        // guardar detalle
-        for (DetalleVenta elemento : listaProductos) {
-            detalleVenta.setId_detalle(0);
-            detalleVenta.setId_venta(0);
-            detalleVenta.setId_producto(elemento.getId_producto());
-            detalleVenta.setCantidad(elemento.getCantidad());
-            detalleVenta.setPrecio_unitario(elemento.getPrecio_unitario());
-            detalleVenta.setSubtotal(elemento.getSubtotal());
-            detalleVenta.setItbis(elemento.getItbis());
-            detalleVenta.setTotal(elemento.getTotal());
+                // guardar detalle
+                for (DetalleVenta elemento : listaProductos) {
+                    detalleVenta.setId_detalle(0);
+                    detalleVenta.setId_venta(0);
+                    detalleVenta.setId_producto(elemento.getId_producto());
+                    detalleVenta.setCantidad(elemento.getCantidad());
+                    detalleVenta.setPrecio_unitario(elemento.getPrecio_unitario());
+                    detalleVenta.setSubtotal(elemento.getSubtotal());
+                    detalleVenta.setItbis(elemento.getItbis());
+                    detalleVenta.setDescuento(elemento.getDescuento());
+                    detalleVenta.setTotal(elemento.getTotal());
 
-            if (controlVenta.guardarDetalle(detalleVenta)) {
-                txtSubtotal.setText("0.0");
-                txtITBIS.setText("0.0");
-                txtTotal.setText("0.0");
-                txtEfectivo.setText("");
-                txtCambio.setText("0.0");
-                auxIdDetalle = 1;
+                    if (controlVenta.guardarDetalle(detalleVenta)) {
+                        txtSubtotal.setText("0.0");
+                        txtITBIS.setText("0.0");
+                        txtTotal.setText("0.0");
+                        txtEfectivo.setText("");
+                        txtCambio.setText("0.0");
+                        auxIdDetalle = 1;
 
-                this.RestarStockProductos(elemento.getId_producto(), elemento.getCantidad());
+                        this.RestarStockProductos(elemento.getId_producto(), elemento.getCantidad());
+
+                    } else {
+                        JOptionPane.showMessageDialog(null, "¡Error al guardar detalle de venta!");
+                    }
+                }
+
+                // vaciamos la lista
+                listaProductos.clear();
+                ListaTablaProductos();
 
             } else {
-                JOptionPane.showMessageDialog(null, "¡Error al guardar detalle de venta!");
+                JOptionPane.showMessageDialog(null, "¡Error al guardar cabecera de venta!");
             }
+        } else {
+            JOptionPane.showMessageDialog(null, "¡Seleccione un producto!");
         }
-
-        // vaciamos la lista
-        listaProductos.clear();
-        ListaTablaProductos();
-
-    } else {
-        JOptionPane.showMessageDialog(null, "¡Error al guardar cabecera de venta!");
-    }
-} else {
-    JOptionPane.showMessageDialog(null, "¡Seleccione un producto!");
-}
 
     }//GEN-LAST:event_btnRegistrarVentaActionPerformed
 
@@ -614,7 +621,8 @@ if (listaProductos.size() > 0) {
         txtTotal.setText(String.valueOf(totalPagarGeneral));
 
     }
-   //metodo para restar la cantidad (stock) de los productos vendidos
+    //metodo para restar la cantidad (stock) de los productos vendidos
+
     private void RestarStockProductos(int idProducto, int cantidad) {
         int cantidadProductosBaseDeDatos = 0;
         try {
@@ -636,7 +644,7 @@ if (listaProductos.size() > 0) {
             PreparedStatement consulta = cn.prepareStatement("update productos set stock=? where id_producto = '" + idProducto + "'");
             int cantidadNueva = cantidadProductosBaseDeDatos - cantidad;
             consulta.setInt(1, cantidadNueva);
-            if(consulta.executeUpdate() > 0){
+            if (consulta.executeUpdate() > 0) {
                 //System.out.println("Todo bien");
             }
             cn.close();
@@ -644,13 +652,11 @@ if (listaProductos.size() > 0) {
             System.out.println("Error al restar cantidad 2, " + e);
         }
     }
-    
-    
+
     public String getFechaHoraActual() {
         java.util.Date fecha = new java.util.Date();
         java.text.SimpleDateFormat formato = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return formato.format(fecha);
     }
-
 
 }
