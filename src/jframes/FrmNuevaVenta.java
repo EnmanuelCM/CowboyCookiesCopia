@@ -831,7 +831,7 @@ public class FrmNuevaVenta extends javax.swing.JInternalFrame {
 
     BigDecimal totalFinal = bdSubtotal.subtract(descuento).setScale(2, RoundingMode.HALF_UP);
 
-    txtTotal.setText("RD$ " + totalFinal.toPlainString());
+    txtTotal.setText( totalFinal.toPlainString());
 
     JOptionPane.showMessageDialog(this,
         "Cupón aplicado: " + cupon.getDescripcion() +
