@@ -2,6 +2,7 @@ package jframes;
 
 import conexion.Conexion;
 import controlador.VentaPDF;
+import controlador.ctrlCupon;
 import controlador.ctrlProducto;
 import controlador.ctrlVentas;
 import java.sql.Connection;
@@ -10,7 +11,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
@@ -18,6 +23,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 import modelo.UsuarioActual;
 import modelo.CabeceraVenta;
+import modelo.Cupon;
 import modelo.DetalleVenta;
 import modelo.Producto;
 
@@ -124,7 +130,10 @@ public class FrmNuevaVenta extends javax.swing.JInternalFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        btnAplicarCupon = new javax.swing.JButton();
+        jLabel2 = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
+        txtCupon = new javax.swing.JTextField();
         txtCantidad = new javax.swing.JTextField();
         txt_idproducto = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
@@ -156,10 +165,27 @@ public class FrmNuevaVenta extends javax.swing.JInternalFrame {
         setPreferredSize(new java.awt.Dimension(1000, 602));
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
+        btnAplicarCupon.setBackground(new java.awt.Color(95, 47, 35));
+        btnAplicarCupon.setFont(new java.awt.Font("Montserrat", 1, 12)); // NOI18N
+        btnAplicarCupon.setForeground(new java.awt.Color(255, 255, 255));
+        btnAplicarCupon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/files/agregar.png"))); // NOI18N
+        btnAplicarCupon.setText("Aplicar Cupón");
+        btnAplicarCupon.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAplicarCuponActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btnAplicarCupon, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 390, -1, -1));
+
+        jLabel2.setFont(new java.awt.Font("Montserrat SemiBold", 0, 12)); // NOI18N
+        jLabel2.setText("Usar Cupón:");
+        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 390, -1, -1));
+
         jLabel10.setFont(new java.awt.Font("Montserrat SemiBold", 0, 14)); // NOI18N
         jLabel10.setForeground(new java.awt.Color(95, 47, 35));
         jLabel10.setText("Buscar por código:");
         getContentPane().add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(790, 70, -1, -1));
+        getContentPane().add(txtCupon, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 390, 100, -1));
 
         txtCantidad.setFont(new java.awt.Font("Montserrat", 0, 12)); // NOI18N
         getContentPane().add(txtCantidad, new org.netbeans.lib.awtextra.AbsoluteConstraints(510, 90, 70, -1));
@@ -577,14 +603,27 @@ public class FrmNuevaVenta extends javax.swing.JInternalFrame {
         }
     }//GEN-LAST:event_txt_idproductoKeyPressed
 
+    private void btnAplicarCuponActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAplicarCuponActionPerformed
+        
+        btnAplicarCupon.addActionListener(new ActionListener() {
+    public void actionPerformed(ActionEvent evt) {
+        AplicarCupon();
+    }
+});
+        
+     
+    }//GEN-LAST:event_btnAplicarCuponActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAgregarProd;
+    private javax.swing.JButton btnAplicarCupon;
     private javax.swing.JButton btnCalcularCambio;
     private javax.swing.JButton btnRegistrarVenta;
     private javax.swing.JComboBox<String> cbxProductos;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -600,6 +639,7 @@ public class FrmNuevaVenta extends javax.swing.JInternalFrame {
     private javax.swing.JLabel lbl_wallpaper;
     private javax.swing.JTextField txtCambio;
     private javax.swing.JTextField txtCantidad;
+    private javax.swing.JTextField txtCupon;
     private javax.swing.JTextField txtEfectivo;
     private javax.swing.JTextField txtITBIS;
     private javax.swing.JTextField txtSubtotal;
@@ -754,4 +794,52 @@ public class FrmNuevaVenta extends javax.swing.JInternalFrame {
         java.text.SimpleDateFormat formato = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return formato.format(fecha);
     }
+    
+    private void AplicarCupon() {
+    String codigoIngresado = txtCupon.getText().trim();
+
+    if (codigoIngresado.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Por favor, ingrese un código de cupón.");
+        return;
+    }
+
+    Cupon cupon = ctrlCupon.buscarCupon(codigoIngresado);
+
+    if (cupon == null) {
+        JOptionPane.showMessageDialog(this, "El cupón no existe.");
+        return;
+    }
+
+    if (cupon.isUsado()) {
+        JOptionPane.showMessageDialog(this, "Este cupón ya fue utilizado. 🥲");
+        return;
+    }
+
+    BigDecimal bdSubtotal = BigDecimal.valueOf(subtotal).setScale(2, RoundingMode.HALF_UP);
+    BigDecimal descuento = BigDecimal.ZERO;
+
+    if (cupon.getTipoDescuento().equalsIgnoreCase("porcentaje")) {
+        BigDecimal porcentaje = BigDecimal.valueOf(cupon.getValorDescuento())
+                                   .divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
+        descuento = bdSubtotal.multiply(porcentaje).setScale(2, RoundingMode.HALF_UP);
+    } else if (cupon.getTipoDescuento().equalsIgnoreCase("monto")) {
+        descuento = BigDecimal.valueOf(cupon.getValorDescuento()).setScale(2, RoundingMode.HALF_UP);
+        if (descuento.compareTo(bdSubtotal) > 0) {
+            descuento = bdSubtotal;
+        }
+    }
+
+    BigDecimal totalFinal = bdSubtotal.subtract(descuento).setScale(2, RoundingMode.HALF_UP);
+
+    txtTotal.setText("RD$ " + totalFinal.toPlainString());
+
+    JOptionPane.showMessageDialog(this,
+        "Cupón aplicado: " + cupon.getDescripcion() +
+        "\nDescuento: RD$ " + descuento +
+        "\nTotal a pagar: RD$ " + totalFinal);
+
+    
 }
+    }
+    
+    
