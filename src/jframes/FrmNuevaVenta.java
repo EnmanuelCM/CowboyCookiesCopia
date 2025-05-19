@@ -835,10 +835,9 @@ public class FrmNuevaVenta extends javax.swing.JInternalFrame {
 
     JOptionPane.showMessageDialog(this,
         "Cupón aplicado: " + cupon.getDescripcion() +
-        "\nDescuento: RD$ " + descuento +
         "\nTotal a pagar: RD$ " + totalFinal);
 
-    
+    ctrlCupon.marcarComoUsado(cupon.getCodigo());
 }
     }
     
